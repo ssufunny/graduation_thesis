@@ -48,9 +48,10 @@ element_present = EC.presence_of_element_located((By.CLASS_NAME, 'yuRUbf'))
 WebDriverWait(driver, timeout).until(element_present)
 
 #class:yuRUbf->a태그->href에 구하려는 url존재
-find_class = driver.find_elements(By.CLASS_NAME, 'yuRUbf')
-for i in range(len(find_class)):
-    url = find_class[i].find_element(By.TAG_NAME,'a').get_attribute('href')
+find_url1 = driver.find_elements(By.CLASS_NAME,'ULSxyf')
+find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
+for i in range(len(find_url2)):
+    url = find_url2[i].find_element(By.TAG_NAME,'a').get_attribute('href')
     if 'pdf' not in url:
         url_list.append(url)
 
