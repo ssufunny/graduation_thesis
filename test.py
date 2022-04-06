@@ -4,7 +4,7 @@ from collections import Counter
 # mecab 위치 불러오기
 mecab = Mecab(dicpath="C://mecab//mecab-ko-dic")
 # text 파일 불러오기
-f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
+f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
 text = f.read()
 
 # 명사 추출
