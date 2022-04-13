@@ -3,14 +3,13 @@ import pandas as pd
 from konlpy.tag import Okt, Komoran, Mecab, Hannanum, Kkma
 
 
+# 형태소 분석기 불러오는 함수
 def get_tokenizer(tokenizer_name):
     global tokenizer
     if tokenizer_name == "komoran":
         tokenizer = Komoran()
     elif tokenizer_name == "okt":
         tokenizer = Okt()
-    elif tokenizer_name == "mecab":
-        tokenizer = Mecab(dicpath=r"C:\mecab\mecab-ko-dic")
     elif tokenizer_name == "hannanum":
         tokenizer = Hannanum()
     elif tokenizer_name == "kkma":
@@ -22,14 +21,18 @@ def get_tokenizer(tokenizer_name):
 
 time_list = []
 tokenizer_list = ["komoran", "okt", "mecab", "hannanum", "kkma"]
+
 for i in tokenizer_list:
     start = time.time()
     tokenizer = get_tokenizer(i)
-    f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
+    # f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
+    # 노트북에서
+    f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
     text = f.read()
     tokenizer.morphs(text)
     time_required = time.time() - start
     tokenizer_and_time = i, time_required
     time_list.append(tokenizer_and_time)
-print(time_list)
-# 소요시간측정 = pd.DataFrame(time_list, columns=['토크나이저', '토큰화 소요시간'])
+
+tokenizer_time = pd.DataFrame(time_list, columns=['형태소 분석기', '소요시간'])
+print(tokenizer_time)
