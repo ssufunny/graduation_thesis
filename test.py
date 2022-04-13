@@ -1,17 +1,13 @@
-import MeCab
+from konlpy.tag import Kkma, Okt, Mecab
 
-# text 파일 불러오기
-f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
-text = f.read()
-m = MeCab.Tagger()
-print(m.parse(text))
+kkma=Kkma()
+okt=Okt()
+mecab= Mecab(dicpath="C://mecab//mecab-ko-dic")
+text = "여기는 도깨비 촬영지인 강원도 강릉시 영진 해변입니다."
 
-
-# # 명사 추출
-# noun = mecab.nouns(text)
-# count = Counter(noun)
-#
-# # 가장 많은 명사 100개 출력
-# noun_list = count.most_common(100)
-# for v in noun_list:
-#     print(v)
+print("Kkma 형태소 분석기")
+print(kkma.pos(text))
+print("Okt 형태소 분석기")
+print(okt.pos(text))
+print("Mecab 형태소 분석기")
+print(mecab.pos(text))
