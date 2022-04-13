@@ -1,4 +1,5 @@
 # Selenium 웹드라이버 사용으로 동적페이지 크롤링
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -43,6 +44,7 @@ elem.clear()
 #검색어 입력
 elem.send_keys("촬영지")
 elem.send_keys(Keys.ENTER)
+driver.implicitly_wait(5)
 
 def not_crawl_link(link):
     not_crawl = ['youtube','twitter','pdf','pinter']
@@ -51,25 +53,26 @@ def not_crawl_link(link):
 print("-----------페이지 수집 시작-----------")
 #1,2,3페이지까지 수집
 for page in range(2,4):
+    html = driver.page_source
+    bsoup = BeautifulSoup(html, 'lxml')
     #첫페이지라면
     if (page == 2):
     #class:yuRUbf->a태그->href에 구하려는 url존재
-        find_url1 = driver.find_elements(By.CLASS_NAME,'ULSxyf')
-        find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
+        find_url1 = bsoup.select('.ULSxyf')
+        find_url2 = find_url1[2].select('.yuRUbf')
         for i in range(len(find_url2)):
-            url = find_url2[i].find_element(By.TAG_NAME,'a').get_attribute('href')
+            url = find_url2[i].find('a')['href']
             if not(not_crawl_link(url)):
                 url_list.append(url) 
-                driver.implicitly_wait(5)
         print("-----------페이지 1 수집 끝-----------") 
     else:
-        find_url3 = driver.find_element(By.CLASS_NAME,'ULSxyf')
-        find_url4 = find_url3.find_elements(By.CLASS_NAME, 'yuRUbf')
+        find_url3 = bsoup.select('.ULSxyf')
+        find_url4 = find_url3[0].select('.yuRUbf')
         for i in range(len(find_url4)):
-            url = find_url4[i].find_element(By.TAG_NAME,'a').get_attribute('href')
+            url = find_url4[i].find('a')['href']
             if not(not_crawl_link(url)):
                 url_list.append(url) 
-                driver.implicitly_wait(5)
+        print("-----------페이지 2 수집 끝-----------") 
     print((page-1), "페이지")
     #다음페이지 이동
     try:
@@ -117,18 +120,3 @@ print(time.time()-collect)
 for a in url_list:
      print(a)
 
-# # f = open('content_crawl.txt','w',encoding='utf-8')
-
-
-
-# print("url 수집 끝, 해당 url 데이터 크롤링")
- 
-# for url in url_list: # 수집한 url 만큼 반복
-#     driver.get(url) # 해당 url로 이동
- 
-#     driver.switch_to.frame('mainFrame')
-#     overlays = ".se-component.se-text.se-l-default" # 내용 크롤링
-#     contents = driver.find_elements_by_css_selector(overlays)
- 
-#     for content in contents:
-#         content_list = content_list + content.text # content_list 라는 값에 + 하면서 점점 누적
