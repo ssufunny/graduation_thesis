@@ -1,6 +1,7 @@
 import copyreg
 import re
 
+import numpy as np
 from konlpy.tag import Mecab
 import MeCab
 
@@ -38,15 +39,42 @@ for i in range(0, words_len - 1):   # 배열 길이만큼 반복
 tagging_join = ",".join(tagging)
 # , 마다 split
 tagging_split = re.split('[,]', tagging_join)
+# 리스트 -> 배열
+tagging_split_arr = np.array(tagging_split)
 text = word + tagging_split
+text_arr = np.array(text)
+plz = []
 
-print(text)
-# print(tagging)
+for number in range(0, len(tagging_split_arr) - 1):
+    if number % 8 == 1:
+        plz.append(tagging_split[number])
+plz_arr = np.array(plz)
+word_arr = np.array(word)
+# for ss in range(0, len(word) - 1):
+#     print(ss, word_arr[ss], plz_arr[ss])
+#     # print(number)
+
+print(len(tagging_split))
+word_arr = np.array(word)
+
+result = []
+result = [[str(1000)]*2 for i in range(len(tagging))]
+result_arr = np.array(result)
+
+for n in range(0, len(word) - 1):
+    result_arr[n][0] = word_arr[n]
+    result_arr[n][1] = plz_arr[n]
+for sss in range(0, len(word) - 1):
+    print(result_arr[sss])
+
+
+#
+# print(text)
+# # print(tagging)
 print(len(tagging)) # 4163
-print(len(word))    # 4163
-print(len(tagging_split))   # 33304
-print(len(text))    # 37467
-
+# print(len(word))    # 4163
+# print(len(tagging_split))   # 33304
+# print(len(text))    # 37467
 # word_tagging = []
 # print(word_split)
 # print(tagging_split)
