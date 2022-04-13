@@ -14,7 +14,7 @@ start = time.time()
 # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
 webdriver_options = webdriver.ChromeOptions()
 webdriver_options .add_argument('headless')
-driver = webdriver.Chrome(r"C:\Users\ryuhyisu\Downloads\chromedriver_win32 (1)\chromedriver")
+driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe", options=webdriver_options)
 driver.implicitly_wait(5)
 # 빅데이터 수집을 위한 url 리스트
 url_list = []
@@ -31,7 +31,7 @@ driver.execute_script("document.getElementById('dRSWfb').style.display = 'none';
 driver.execute_script("document.getElementById('FQt3Wc').style.display = 'block';")
 
 #이미지 업로드 & 파일 선택 버튼 클릭
-driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(r"C:/Users/ryuhyisu/Desktop/도깨비.PNG")
+driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys("C://Users//정보통신공학과//Desktop//도깨비.png")
 # time.sleep(0.3)
 driver.implicitly_wait(5)
 
@@ -76,7 +76,7 @@ for page in range(2,4):
     print((page-1), "페이지")
     #다음페이지 이동
     try:
-        driver.find_element_by_xpath('//*[@id="xjs"]/table/tbody/tr/td[%d]/a' %(page+1)).click()
+        driver.find_element(By.XPATH, '//*[@id="xjs"]/table/tbody/tr/td[%d]/a' % (page + 1)).click()
         driver.implicitly_wait(5)
     except:
         continue
