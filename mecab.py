@@ -7,6 +7,7 @@ import MeCab
 f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
 text = f.read()
 m = MeCab.Tagger()
+# parse 함수 사용(형태소 분석 & 품사 매칭)
 print(m.parse(text))
 
 
