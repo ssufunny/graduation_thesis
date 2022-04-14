@@ -122,7 +122,7 @@ for a in url_list:
     print(a)
 
 pool = Pool(processes=4) # 4개의 프로세스를 사용합니다.
-pool.map(print_fibo, num_list) # pool에 일을 던져줍니다.
+pool.map(print_fibo, num_list)
 # for url in url_list: # 수집한 url 만큼 반복
 #     driver.get(url) # 해당 url로 이동
  
