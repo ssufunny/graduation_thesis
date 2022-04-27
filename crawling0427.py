@@ -4,7 +4,7 @@ from urllib.request import urlopen
 from urllib.request import HTTPError
 from urllib.request import URLError
 from selenium import webdriver
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager, freeze_support
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
@@ -12,54 +12,23 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+import requests
 import time
 
-def getLink():
+def get_driver():
+    # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
+    webdriver_options = webdriver.ChromeOptions()
+    webdriver_options.add_argument('headless')
+    driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+    # driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+    return driver
 
-def multiCrawling(start):
-    try:
-
-# 본문수집하지않을 링크 검사
 def not_crawl_link(link):
     not_crawl = ['youtube', 'twitter', 'pdf', 'pinter']
     return "youtube" in link or "twitter" in link or "pdf" in link or "pinter" in link or "pixta" in link
 
-def content_crawling(url):
-    while True:
-        # idx = url_list.index(url)
-        driver.get(url)
-        time.sleep(0.5)
-        if (len(driver.window_handles) != 1):
-            driver.switch_to.window(driver.window_handles[1])
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-        try:
-            #print("본문 %d 수집 시작" % idx)
-            html = driver.page_source
-            bsoup = BeautifulSoup(html, 'lxml')
-
-            tag = bsoup.find_all(['p', 'span', 'br', 'figcaption'])
-            address = bsoup.select('.se_address')
-        except HTTPError as e:
-            print("httperror")
-            break
-        except:
-            print("error")
-            break
-        for content in tag:
-            file.write(content.text + " ")
-        for add in address:
-            map_address.write(add.text + "\n")
-        #print("본문 %d 수집 끝" % idx)
-
-
-if __name__=='__main__':
-    start = time.time()
-    # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
-    webdriver_options = webdriver.ChromeOptions()
-    webdriver_options.add_argument('headless')
-    driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe", options=webdriver_options)
-    # driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+def generate_urls():
+    driver = get_driver()
 
     # 빅데이터 수집을 위한 url 리스트
     url_list = []
@@ -96,7 +65,7 @@ if __name__=='__main__':
         if (page == 2):
             # class:yuRUbf->a태그->href에 구하려는 url존재
             find_url1 = driver.find_elements(By.CLASS_NAME, 'ULSxyf')
-            find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
+            find_url2 = find_url1[1].find_elements(By.CLASS_NAME, 'yuRUbf')
             for i in range(len(find_url2)):
                 url = find_url2[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
                 if not (not_crawl_link(url)):
@@ -117,31 +86,43 @@ if __name__=='__main__':
             driver.implicitly_wait(5)
         except:
             continue
-    print(time.time() - start)
 
-    # 링크별로 본문 수집 시작 -> 파일 저장
-    file = open("본문수집.txt", "w", encoding="UTF-8")
-    map_address = open("address.txt", "w", encoding="UTF-8")
+    return url_list
+
+def get_content(url):
+    data_list = []
+    map_address = []
+    res = requests.get(url)
+    time.sleep(0.5)
+    #
+    #
+    # if (len(driver.window_handles) != 1):
+    #     driver.switch_to.window(driver.window_handles[1])
+    #     driver.close()
+    #     driver.switch_to.window(driver.window_handles[0])
+    try:
+        # print("본문 %d 수집 시작" % idx)
+        html = res.text
+        bsoup = BeautifulSoup(html, 'lxml')
+        tag = bsoup.find_all(['p', 'span', 'br', 'figcaption'])
+        address = bsoup.select('.se_address')
+    except HTTPError as e:
+        print("httperror")
+    except:
+        print("error")
+
+    for content in tag:
+        data_list.append(content.text+" ")
+
+        # file.write(content.text + " ")
+    for add in address:
+        map_address.append(add.text + "\n")
+    print("본문 수집 끝")
+
+if __name__ == '__main__':
     start_time = time.time()
+    pool = Pool(processes=4)  # 4개의 프로세스를 사용합니다.
+    pool.map(get_content, generate_urls())  # get_contetn 함수를 넣어줍시다.
 
-#------------------------------------------------------------------------------------------------------------
-    pool = Pool(processes=4) # 4개의 프로세스를 사용합니다.
-    pool.map(content_crawling, url_list) # get_contetn 함수를 넣어줍시다.
     print("--- %s seconds ---" % (time.time() - start_time))
-
-    for a in url_list:
-        print(a)
-
-# for url in url_list: # 수집한 url 만큼 반복
-#     driver.get(url) # 해당 url로 이동
-
-#     driver.switch_to.frame('mainFrame')
-#     overlays = ".se-component.se-text.se-l-default" # 내용 크롤링
-#     contents = driver.find_elements_by_css_selector(overlays)
-
-#     for content in contents:
-#         content_list = content_list + content.text # content_list 라는 값에 + 하면서 점점 누적
-
-
-
 

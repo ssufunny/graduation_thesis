@@ -18,8 +18,8 @@ start = time.time()
 # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
 webdriver_options = webdriver.ChromeOptions()
 webdriver_options .add_argument('headless')
-driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe", options=webdriver_options)
-#driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+# driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe", options=webdriver_options)
+driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
 
 # 빅데이터 수집을 위한 url 리스트
 url_list = []
@@ -30,10 +30,12 @@ driver.get(google)
 
 #구글이미지 검색창
 driver.find_element(By.XPATH, value="//*[@id='sbtc']/div/div[3]/div[2]").click()
+driver.implicitly_wait(5)
 
 #이미지 업로드 화면 클릭
 driver.execute_script("document.getElementById('dRSWfb').style.display = 'none';")
 driver.execute_script("document.getElementById('FQt3Wc').style.display = 'block';")
+driver.implicitly_wait(5)
 
 #이미지 업로드 & 파일 선택 버튼 클릭
 driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys("C://Users//정보통신공학과//Desktop//미스터션샤인.jpeg")
@@ -60,7 +62,7 @@ for page in range(2,5):
     if (page == 2):
         #class:yuRUbf->a태그->href에 구하려는 url존재
         find_url1 = driver.find_elements(By.CLASS_NAME, 'ULSxyf')
-        find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
+        find_url2 = find_url1[1].find_elements(By.CLASS_NAME, 'yuRUbf')
         for i in range(len(find_url2)):
             url = find_url2[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
             if not(not_crawl_link(url)):
@@ -122,7 +124,7 @@ for a in url_list:
     print(a)
 
 pool = Pool(processes=4) # 4개의 프로세스를 사용합니다.
-pool.map(print_fibo, num_list)
+pool.map(print_fibo, num_list) # pool에 일을 던져줍니다.
 # for url in url_list: # 수집한 url 만큼 반복
 #     driver.get(url) # 해당 url로 이동
  
