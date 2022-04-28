@@ -9,7 +9,7 @@ url = 'http://kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieList.jso
 
 movie_list = []
 
-for j in range(0,15):
+for j in range(0,100): # 반복 범위 늘려야하는데 너무 느림 방법 찾기
     request = Request(url+"&curPage="+str(j)) # 영화 목록 api에 request 요청
     response_body = urlopen(request).read()
     # print(response_body)
@@ -20,8 +20,12 @@ for j in range(0,15):
         movieNm = list["movieNm"]
         genreAlt = list["genreAlt"]
         # print(movieNm, genreAlt)
-        if ("성인물(에로)"  or "애니메이션" or "기타") not in genreAlt:
-            movie_list.append(movieNm)
+        if "성인물(에로)" not in genreAlt:
+            if "애니메이션" not in genreAlt:
+                if "기타" not in genreAlt:
+                    movie_list.append(movieNm)
+
+# txt 파일로 저장
 data = pd.DataFrame(movie_list)
 data.to_csv("movie_list.txt", mode='w', encoding='utf-8', index=False)
 # print(movie_list)
