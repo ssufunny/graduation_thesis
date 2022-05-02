@@ -1,5 +1,10 @@
 # Selenium 웹드라이버 사용으로 동적페이지 크롤링
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from urllib.request import HTTPError
+from urllib.request import URLError
 from selenium import webdriver
+from multiprocessing import Pool
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
@@ -13,8 +18,9 @@ start = time.time()
 # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
 webdriver_options = webdriver.ChromeOptions()
 webdriver_options .add_argument('headless')
-driver = webdriver.Chrome(r"C:\Users\ryuhyisu\Downloads\chromedriver_win32 (1)\chromedriver")
-driver.implicitly_wait(5)
+# driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe", options=webdriver_options)
+driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+
 # 빅데이터 수집을 위한 url 리스트
 url_list = []
 
@@ -24,14 +30,15 @@ driver.get(google)
 
 #구글이미지 검색창
 driver.find_element(By.XPATH, value="//*[@id='sbtc']/div/div[3]/div[2]").click()
+driver.implicitly_wait(5)
 
 #이미지 업로드 화면 클릭
 driver.execute_script("document.getElementById('dRSWfb').style.display = 'none';")
 driver.execute_script("document.getElementById('FQt3Wc').style.display = 'block';")
+driver.implicitly_wait(5)
 
 #이미지 업로드 & 파일 선택 버튼 클릭
-driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(r"C:/Users/ryuhyisu/Desktop/도깨비.PNG")
-# time.sleep(0.3)
+driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys("C://Users//정보통신공학과//Desktop//미스터션샤인.jpeg")
 driver.implicitly_wait(5)
 
 #이미지+촬영지 검색
@@ -44,85 +51,80 @@ elem.clear()
 elem.send_keys("촬영지")
 elem.send_keys(Keys.ENTER)
 
+#본문수집하지않을 링크 검사
 def not_crawl_link(link):
     not_crawl = ['youtube','twitter','pdf','pinter']
-    return "youtube" in link or "twitter" in link or "pdf" in link or "pinter" in link
+    return "youtube" in link or "twitter" in link or "pdf" in link or "pinter" in link or "pixta" in link
 
-print("-----------페이지 수집 시작-----------")
-#1,2,3페이지까지 수집
-for page in range(2,4):
+#class:yuRUbf->a태그->href에 구하려는 url존재
+for page in range(2,5):
     #첫페이지라면
     if (page == 2):
-    #class:yuRUbf->a태그->href에 구하려는 url존재
-        find_url1 = driver.find_elements(By.CLASS_NAME,'ULSxyf')
-        find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
+        #class:yuRUbf->a태그->href에 구하려는 url존재
+        find_url1 = driver.find_elements(By.CLASS_NAME, 'ULSxyf')
+        find_url2 = find_url1[1].find_elements(By.CLASS_NAME, 'yuRUbf')
         for i in range(len(find_url2)):
-            url = find_url2[i].find_element(By.TAG_NAME,'a').get_attribute('href')
+            url = find_url2[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
             if not(not_crawl_link(url)):
-                url_list.append(url) 
-                driver.implicitly_wait(5)
-        print("-----------페이지 1 수집 끝-----------") 
+                url_list.append(url)
+        print("-----------페이지 1 수집 끝-----------")
     else:
-        find_url3 = driver.find_element(By.CLASS_NAME,'ULSxyf')
-        find_url4 = find_url3.find_elements(By.CLASS_NAME, 'yuRUbf')
+        find_url3 = driver.find_elements(By.CLASS_NAME, 'ULSxyf')
+        find_url4 = find_url3[0].find_elements(By.CLASS_NAME, 'yuRUbf')
         for i in range(len(find_url4)):
-            url = find_url4[i].find_element(By.TAG_NAME,'a').get_attribute('href')
-            if not(not_crawl_link(url)):
-                url_list.append(url) 
-                driver.implicitly_wait(5)
+            url = find_url4[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
+            if not (not_crawl_link(url)):
+                url_list.append(url)
+        print("-----------페이지 2 수집 끝-----------")
     print((page-1), "페이지")
     #다음페이지 이동
     try:
-        driver.find_element_by_xpath('//*[@id="xjs"]/table/tbody/tr/td[%d]/a' %(page+1)).click()
+        driver.find_element(By.XPATH, '//*[@id="xjs"]/table/tbody/tr/td[%d]' % (page+1)).click()
         driver.implicitly_wait(5)
     except:
         continue
-print(time.time()-start)  
-
+print(time.time()-start)
 collect = time.time()
-# 링크별로 본문 수집 시작 -> 파일 저장
-with open("본문수집.txt",  "w", encoding="UTF-8") as file:
-    i = 0
-    for content in url_list:
-        i += 1
-        # crawling_main_text(content)
-        driver.get(content)
-        driver.implicitly_wait(5)
-        try:
-            #p태그 우선 수집
-            
-            p_tag = driver.find_elements(By.TAG_NAME,'p')
-            driver.implicitly_wait(5)
-            span_tag = driver.find_elements(By.TAG_NAME, 'span')
-            driver.implicitly_wait(5)
 
-            body = p_tag + span_tag
-            try:
-                br_tag = driver.find_elements(By.TAG_NAME, 'br')
-                driver.implicitly_wait(5)
-            except:
-                print("")
-                
-            body += br_tag
-            driver.implicitly_wait(5)
-                        
-        except:       
-            # time.sleep(1)
-            continue
-        for content in body:
-            file.write(content.text)
-            driver.implicitly_wait(5)
-        print("본문 %d 수집 끝"%i)    
-print(time.time()-collect)            
+#링크별로 본문 수집 시작 -> 파일 저장
+file = open("본문수집.txt",  "w", encoding="UTF-8")
+map_address = open("address.txt",  "w", encoding="UTF-8")
+
+for url in url_list:
+    idx = url_list.index(url)
+    driver.get(url)
+    time.sleep(0.5)
+    if (len(driver.window_handles) != 1):
+        driver.switch_to.window(driver.window_handles[1])
+        driver.close()
+        driver.switch_to.window(driver.window_handles[0])
+    try:
+        print("본문 %d 수집 시작" % idx)
+        html = driver.page_source
+        bsoup = BeautifulSoup(html, 'lxml')
+
+        tag = bsoup.find_all(['p','span','br','figcaption'])
+        address = bsoup.select('.se_address')
+    except HTTPError as e:
+        print("httperror")
+        continue
+    except:
+        print("error")
+        continue
+    for content in tag:
+        file.write(content.text+" ")
+    for add in address:
+        map_address.write(add.text+"\n")
+    print("본문 %d 수집 끝" % idx)
+
+
+print(time.time()-collect)
+
 for a in url_list:
-     print(a)
+    print(a)
 
-# # f = open('content_crawl.txt','w',encoding='utf-8')
-
-
-
-# print("url 수집 끝, 해당 url 데이터 크롤링")
- 
+pool = Pool(processes=4) # 4개의 프로세스를 사용합니다.
+pool.map(print_fibo, num_list) # pool에 일을 던져줍니다.
 # for url in url_list: # 수집한 url 만큼 반복
 #     driver.get(url) # 해당 url로 이동
  
