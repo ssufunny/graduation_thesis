@@ -19,12 +19,10 @@ for j in range(0,100): # 반복 범위 늘려야하는데 너무 느림 방법 �
         # print(list)
         movieNm = list["movieNm"]
         genreAlt = list["genreAlt"]
-        # print(movieNm, genreAlt)
-        if "성인물(에로)" not in genreAlt:
-            if "애니메이션" not in genreAlt:
-                if "기타" not in genreAlt:
-                    movie_list.append(movieNm)
-
+        print(movieNm, genreAlt)
+        if ("성인물(에로)" not in genreAlt) or ("애니메이션" not in genreAlt) or ("기타" not in genreAlt):
+            movie_list.append(movieNm)
+print(movie_list)
 # txt 파일로 저장
 data = pd.DataFrame(movie_list)
 data.to_csv("movie_list.txt", mode='w', encoding='utf-8', index=False)
