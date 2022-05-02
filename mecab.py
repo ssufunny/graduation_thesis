@@ -1,6 +1,5 @@
 import copyreg
 import re
-
 import numpy as np
 from konlpy.tag import Mecab
 import MeCab
@@ -46,9 +45,12 @@ for number in range(0, len(tagging_split) - 1):
         plz.append(tagging_split[number])
 # 결과 배열
 result = [[str(1000)]*2 for i in range(len(tagging))]
+result_all = [[str(1000)]*2 for i in range(len(tagging))]
 num = 0
 # 결과 배열에 값 넣어주기
 for n in range(0, len(word) - 1):
+    result_all[n][0] = word[n]
+    result_all[n][1] = plz[n]
     if plz[n] == "지명" or plz[n] == "장소":    # 지명, 장소 태깅만 결과 배열에 넣기
         result[num][0] = word[n]
         result[num][1] = plz[n]
@@ -57,5 +59,6 @@ for n in range(0, len(word) - 1):
     # result[n][1] = plz[n]
 # 단어별 출력
 for m in range(0, len(result) - 1):
+    print(m + 1, result_all[m])
     if (result[m][0] != "1000" and result[m][1] != "1000"):
         print(result[m])
