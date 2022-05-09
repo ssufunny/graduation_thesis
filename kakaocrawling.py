@@ -1,63 +1,56 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
-
-
-
-
-
-# 서버용 MongoDB 연결
-# client = MongoClient('mongodb://test:test@localhost', 27017)
-
+from openpyxl import Workbook, load_workbook
 
 # 코딩 시작! --------------------------------------------------------------------------------------------
 
 # 셀레니움에 쓸 크롬 드라이버 시작
 driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
-
 # 카카오지도 들어가기
 driver.get("https://map.kakao.com/")
-
 # 주소창 찾기
 elem = driver.find_element_by_name("q")
-
 # 카카오지도는 최대 검색 페이지 제한이 있어 서울시 구 별로 검색.
+all_values = []
+load_wb = load_workbook(filename="C://Users//정보통신공학과//Downloads//place.xlsx", data_only=True)
+load_ws = load_wb['san']
+for row in load_ws.rows:
+    row_value = ""
+    for col in row:
+        if col.value == None:
+            row_value += ""
+        else:
+            row_value += str(col.value)+" "
+    all_values.append(row_value)
 
-seoul_gus = ["경북 안동시 길안면 묵계하리길", "강원 강릉시 연곡면 영진리", "강북구 맛집", "은평구 맛집", "성북구 맛집", "중랑구 맛집", "동대문구 맛집", "종로구 맛집", "서대문구 맛집",
-             "중구 맛집", "성동구 맛집", "광진구 맛집", "용산구 맛집", "마포구 맛집", "강서구 맛집", "양천구 맛집", "구로구 맛집", "영등포구 맛집", "동작구 맛집",
-             "금천구 맛집",
-             "관악구 맛집", "서초구 맛집", "강남구 맛집", "송파구 맛집", "강동구 맛집"]
 
-for seoul_gu in seoul_gus:
+f = open("상호명.txt", 'w')
+for seoul_gu in all_values:
     elem.clear()
     elem.send_keys(seoul_gu)
     elem.send_keys(Keys.RETURN)
-
     # 장소 더보기 누르기
-
     try:
-        time.sleep(0.5)
+        driver.implicitly_wait(5)
         driver.find_element_by_css_selector("#info\.search\.place\.more").send_keys(Keys.ENTER)
     except:
-        time.sleep(0.5)
+        driver.implicitly_wait(5)
         shops = driver.find_elements_by_class_name("PlaceItem")
-
         for shop in shops:
             # 이름
             name = shop.find_element_by_css_selector("div.head_item.clickArea > strong > a.link_name").text
-            # 별점
-            # rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > em").text
-            # 가게 종류
-            # category = shop.find_element_by_css_selector("div.head_item.clickArea > span").text
-            # 상세보기
-            # link = shop.find_element_by_css_selector(
-            #
-            # 주소
-            # address = shop.find_element_by_css_selector("div.info_item > div.addr > p:nth-child(1)").text
-            # 구
-            # gu = seoul_gu.replace(" 맛집", "")
+            # 별 리뷰
+            try:
+                rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > a").text
+                # 참조 리뷰
+                review = shop.find_element_by_css_selector("div.rating.clickArea > a > em").text
+                f.write(seoul_gu, name, rating, review)
+            except:
+                f.write(seoul_gu, name, 0, 0)
+                continue
 
-            print(name)
+            #ws.append([seoul_gu, name])
         continue
 
     # 1 페이지 돌아가기
@@ -76,7 +69,6 @@ for seoul_gu in seoul_gus:
     print(seoul_gu, entire_page - 1)
 
     # 1 페이지 확인
-
     page_bar = driver.find_element_by_css_selector("#info\.search\.page > div")
     now_page_bar = page_bar.find_element_by_class_name("ACTIVE").text
     # print(now_page_bar)
@@ -95,19 +87,15 @@ for seoul_gu in seoul_gus:
         for shop in shops:
             # 이름
             name = shop.find_element_by_css_selector("div.head_item.clickArea > strong > a.link_name").text
-            # 별점
-           # rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > em").text
-            # 가게 종류
-            #category = shop.find_element_by_css_selector("div.head_item.clickArea > span").text
-            # 상세보기
-            #link = shop.find_element_by_css_selector(
-                #
-            # 주소
-            #address = shop.find_element_by_css_selector("div.info_item > div.addr > p:nth-child(1)").text
-            # 구
-            #gu = seoul_gu.replace(" 맛집", "")
-
-            print(name)
+            try:
+                rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > a").text
+                # 참조 리뷰
+                review = shop.find_element_by_css_selector("div.rating.clickArea > a > em").text
+                f.write(seoul_gu, name, rating, review)
+            except:
+                f.write(seoul_gu, name, 0, 0)
+                continue
+            # ws.append([seoul_gu, name])
 
         if n == 34:
             break
@@ -124,3 +112,4 @@ for seoul_gu in seoul_gus:
             driver.find_element_by_id("info.search.page.no" + page_number).send_keys(Keys.ENTER)
 
 print("크롤링 끝!")
+#wb.save(filename="엑셀표.xlsx")
