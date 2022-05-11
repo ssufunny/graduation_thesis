@@ -3,14 +3,14 @@ import re
 
 filename = 'C://graduation_thesis//buildDB//all_place.xlsx'
 place_sheet = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
-with open("C:/mecab/user-dic/nnp.csv", 'r', encoding='utf-8') as f:
+with open("C:/mecab/user-dic/place.csv", 'r', encoding='utf-8') as f:
     file_data = f.readlines()
 file_data
 
 # mecab 사전에 추가
 def append(result, TF):
     file_data.append(result + ',,,,NNP,지명,' + TF + ',' + result + ',*,*,*,*\n')
-    with open("C:/mecab/user-dic/nnp.csv", 'w', encoding='utf-8') as f:
+    with open("C:/mecab/user-dic/place.csv", 'w', encoding='utf-8') as f:
         for line in file_data:
             f.write(line)
 # 받침 유무 확인
