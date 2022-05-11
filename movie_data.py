@@ -1,8 +1,6 @@
 import pandas as pd
-import openpyxl
 import re
 
-# filename = 'C://Users//jisu//Documents//한국외대//2022 - 1//정보통신종합설계//Data//movie_list.xlsx'
 filename = 'C://graduation_thesis//movie_list.xlsx'
 with open("C:/mecab/user-dic/nnp.csv", 'r', encoding='utf-8') as f:
     file_data = f.readlines()
@@ -22,7 +20,6 @@ for i in range(len(movie_list)):
         name = re.search("[가-힣]+", last)
         # 받침 유무 판단
         if name:
-            k = name.group()[-1]
             if ((ord(last)) - 44032) % 28 > 0:  # 받침 있음
                 TF = 'T'
             else:
