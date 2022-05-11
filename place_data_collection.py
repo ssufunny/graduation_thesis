@@ -1,4 +1,6 @@
 import pandas as pd
+import glob
+
 
 # 파일 불러오기
 filename = 'C://graduation_thesis//buildDB//build_place.xlsx'
@@ -11,4 +13,12 @@ for i in range(0, 21):
     xlsx_dir = 'C://graduation_thesis//buildDB//place_' + str(i) + '.xlsx'  # 새로 저장할 엑셀 파일 생성
 with pd.ExcelWriter(xlsx_dir) as writer:
     table.to_excel(writer, sheet_name='place')
+
+# 파일 Union
+all_data = pd.DataFrame()
+for f in glob.glob('C://graduation_thesis//buildDB//place_*.xlsx'): # place_로 시작하는 엑셀 파일 합치기
+    df = pd.read_excel(f)
+    all_data = all_data.append(df, ignore_index=True)
+# 파일 저장
+all_data.to_excel("C://graduation_thesis//buildDB//all_place.xlsx", header=True, index=False)
 
