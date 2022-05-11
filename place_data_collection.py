@@ -1,7 +1,7 @@
 import pandas as pd
 
 # 파일 불러오기
-filename = 'C://graduation_thesis//buildDB//build_place2.xlsx'
+filename = 'C://graduation_thesis//buildDB//build_place.xlsx'
 
 # 도로명 주소 엑셀 파일에서 중복 제거하여 다시 엑셀로 저장
 for i in range(0, 21):
