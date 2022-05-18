@@ -1,119 +1,120 @@
-# 25개구 for문으로 돌려서 카페 정보 크롤링하기
-
-import os
-from time import sleep
-import time
-from bs4 import BeautifulSoup
-from selenium.common.exceptions import ElementNotInteractableException
-from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
+import time
+from openpyxl import Workbook, load_workbook
 from selenium.webdriver.common.by import By
+import pandas as pd
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import ElementNotInteractableException
 
-##########################################################################
-##################### variable related selenium ##########################
-##########################################################################
-# 서울 특별시 구 리스트
-loc_list = ['서울', '경기도', '충북', '충남', '전북', '전남', '경북', '경남', '걍원도', '제주', '부산','대구','울산','대전','광주','인천']
+all_values = []
+load_wb = load_workbook(filename="C://Users//정보통신공학과//Downloads//all_place.xlsx", data_only=True)
+load_ws = load_wb['Sheet1']
 
-# csv 파일에 헤더 만들어 주기
-for index, loc_name in enumerate(loc_list):
-    fileName = 'test.csv'  # index.__str__() + '_' + gu_name + '.'+'csv'
-    file = open(fileName, 'w', encoding='utf-8')
-    file.write("시설명" + "|" + "주소" + "|" + "영업시간" + "|" + "전화번호" + "|" + "대표사진주소" + "\n")
-    file.close()  # 처음에 csv파일에 칼럼명 만들어주기
+for r in range(1686,18570):
+    row_value = ""
+    for c in range(2,6):
+        if load_ws.cell(row=r, column=c).value == None:
+            row_value += ""
+        else:
+            row_value += str(load_ws.cell(row=r, column=c).value)+" "
+    all_values.append(row_value)
 
-    driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+driver = webdriver.Chrome("C://Users//정보통신공학과//Downloads//chromedriver_win32 (2)//chromedriver.exe")
+driver.maximize_window()
+driver.get("https://map.kakao.com/")
+# 주소창 찾기
+elem = driver.find_element(By.NAME, value="q")
+f = open("상호명전국1686.txt", 'w', encoding='utf-8')
+#12개, 0개, 4페이지까지, '끝까지'
 
-    driver.get('https://map.kakao.com/')  # 주소 가져오기
-    search_area = driver.find_element_by_xpath('//*[@id="search.keyword.query"]')  # 검색 창
-    search_area.send_keys(loc_name + ' 선별진료소')  # 검색어 입력
-    driver.find_element_by_xpath('//*[@id="search.keyword.submit"]').send_keys(Keys.ENTER)  # Enter로 검색
-    driver.implicitly_wait(3)  # 기다려 주자
-    more_page = driver.find_element_by_id("info.search.place.more")
-    # more_page.click()
-    more_page.send_keys(Keys.ENTER)  # 더보기 누르고
-    # 첫 번째 검색 페이지 끝
-    # driver.implicitly_wait(5) # 기다려 주자
-    time.sleep(1)
+#all_values = ['충북 청주시 청원구 내수읍 덕암 2길','충북 청주시 청원구 내수읍 덕암 2길', '충북 청주시 청원구 내수읍 덕암 24길','충북 청주시 청원구 내수읍 초정약수로','충북 청주시 청원구 내수읍']
+for seoul_gu in all_values:
+    elem.clear()
+    elem.send_keys(seoul_gu)
+    driver.find_element_by_xpath('//*[@id="search.keyword.submit"]').send_keys(Keys.ENTER)
+    time.sleep(0.7)
+    # 장소 더보기 누르기
+    try: # 장소 더보기 누르기 ( 장소 있는 경우 )
+        driver.find_element_by_css_selector("#info\.search\.place\.more").send_keys(Keys.ENTER)
+        time.sleep(0.4)
+        print(seoul_gu)
 
-    # next 사용 가능?
-    next_btn = driver.find_element_by_id("info.search.page.next")
-    has_next = "disabled" not in next_btn.get_attribute("class").split(" ")
-    Page = 1
-    while has_next:  # 다음 페이지가 있으면 loop
-        # for i in range(2, 6): # 2, 3, 4, 5
-        file = open(fileName, 'a', encoding='utf-8')
-        time.sleep(1)
-        # place_lists = driver.find_elements_by_css_selector('#info\.search\.place\.list > li:nth-child(1)')
-        # 페이지 루프
-        # info\.search\.page\.no1 ~ .no5
-        page_links = driver.find_elements_by_css_selector("#info\.search\.page a")
-        pages = [link for link in page_links if "HIDDEN" not in link.get_attribute("class").split(" ")]
-        # print(len(pages), "개의 페이지 있음")
-        # pages를 하나씩 클릭하면서
-        for i in range(1, 6):
-            xPath = '//*[@id="info.search.page.no' + str(i) + '"]'
-            try:
-                page = driver.find_element_by_xpath(xPath)
-                page.send_keys(Keys.ENTER)
-            except ElementNotInteractableException:
-                print('End of Page')
-                break;
-            sleep(3)
-            place_lists = driver.find_elements_by_css_selector('#info\.search\.place\.list > li')
-            for p in place_lists:  # WebElement
-                # print(p.get_attribute('innerHTML'))
-                # print("type of p:", type(p))
-                store_html = p.get_attribute('innerHTML')
-                store_info = BeautifulSoup(store_html, "html.parser")
-                # BS -> 분석
-                #
-                place_name = store_info.select('.head_item > .tit_name > .link_name')
-                place_address = store_info.select('.info_item > .addr > p')
-                place_hour = store_info.select('.info_item > .openhour > p > a')
-                place_tel = store_info.select('.info_item > .contact > span')
-                # print("length:", len(place_name))
-                if len(place_name) == 0:
-                    continue  # 광고
-                place_name = store_info.select('.head_item > .tit_name > .link_name')[0].text
-                place_address = store_info.select('.info_item > .addr > p')[0].text
-                place_hour = store_info.select('.info_item > .openhour > p > a')[0].text
-                place_tel = store_info.select('.info_item > .contact > span')[0].text
+        while True:  # 페이지들 크롤링이 전부 끝날 때까지 계속 [다음] 버튼으로 넘어감
 
+            for i in range(1, 6):
+                # 한 덩어리에는 5개의 페이지가 존재 (1페이지 to 5페이지 / 6페이지 to 10페이지 / .. etc.)
 
-                # 사진url 수집
-                detail = p.find_element_by_css_selector('div.info_item > div.contact > a.moreview')
-                detail.send_keys(Keys.ENTER)
+                xPath_page = '//*[@id="info.search.page.no' + str(i) + '"]'
+                try:
+                    driver.find_element_by_xpath(xPath_page).send_keys(Keys.ENTER)
+                    time.sleep(0.4)
 
-                driver.switch_to.window(driver.window_handles[-1])
+                    shops = driver.find_elements_by_class_name("PlaceItem")
 
-                driver.close()
-                driver.switch_to.window(driver.window_handles[0])
-                print(place_name, place_address, place_hour, place_tel)
-                doc = {
-                    'name': place_name,
-                    'address': place_address,
-                    'hour': place_hour,
-                    'tel': place_tel,
-                }
-                db.clinics.insert_one(doc)
-                file.write(
-                    place_name + "|" + place_address + "|" + place_hour + "|" + place_tel + "|" + "\n")
+                    for shop in shops:
+                        # 이름
+                        name = shop.find_element_by_css_selector("div.head_item.clickArea > strong > a.link_name").text
+                        # 별 리뷰
+                        try:
+                            rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > a").text
+                            rating_num = rating[:-1]
+                            # 참조 리뷰
+                            review = shop.find_element_by_css_selector("div.rating.clickArea > a > em").text
+                            if int(rating_num) + int(review) > 1:
+                                f.writelines([seoul_gu + ",", name + ",", rating_num + ",", review + "\n"])
+                        except:
+                            continue
+                except ElementNotInteractableException:
+                    if (i==1):
+                        shops = driver.find_elements_by_class_name("PlaceItem")
 
-            print(i, ' of', ' [ ', Page, ' ] ')
-        next_btn = driver.find_element_by_id("info.search.page.next")
-        has_next = "disabled" not in next_btn.get_attribute("class").split(" ")
-        if not has_next:
-            print('Arrow is Disabled')
-            driver.close()
-            file.close()
-            break  # 다음 페이지 없으니까 종료
-        else:  # 다음 페이지 있으면
-            Page += 1
-            next_btn.send_keys(Keys.ENTER)
+                        for shop in shops:
+                            # 이름
+                            name = shop.find_element_by_css_selector(
+                                "div.head_item.clickArea > strong > a.link_name").text
+                            # 별 리뷰
+                            try:
+                                rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > a").text
+                                rating_num = rating[:-1]
+                                # 참조 리뷰
+                                review = shop.find_element_by_css_selector("div.rating.clickArea > a > em").text
+                                if int(rating_num) + int(review) > 1:
+                                    f.writelines([seoul_gu + ",", name + ",", rating_num + ",", review + "\n"])
+                            except:
+                                continue
+                    else:
+                        break
+
+            # [다음] 버튼의 클래스 속성 값이 next 이면 계속 넘어가고, 아니면(next disabled) 크롤링 종료
+            next_button = driver.find_element_by_xpath('//*[@id="info.search.page.next"]')
+            next_button_class = next_button.get_attribute('class')
+
+            if next_button_class == "next":
+                xPath_next_button = '//*[@id="info.search.page.next"]'
+                driver.find_element_by_xpath(xPath_next_button).send_keys(Keys.ENTER)
+            else:
+                break
+
+    except: # 더보기 없으면 수집 -> 장소 있을수도, 없을수도 하여튼간 15개 이하
+        try:
+            shops = driver.find_elements_by_class_name("PlaceItem")
 
 
-    print("End of Crawl")
+            for shop in shops:
+                # 이름
+                name = shop.find_element_by_css_selector("div.head_item.clickArea > strong > a.link_name").text
+
+                # 별 리뷰
+                try:
+                    rating = shop.find_element_by_css_selector("div.rating.clickArea > span.score > a").text
+                    rating_num = rating[:-1]
+                    # 참조 리뷰
+                    review = shop.find_element_by_css_selector("div.rating.clickArea > a > em").text
+                    if int(rating_num)+int(review) > 1:
+                        f.writelines([seoul_gu+",", name+",", rating_num+",", review+"\n"])
+                except:
+                    continue
+        except: #암것도 없으면
+            continue

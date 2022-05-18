@@ -58,6 +58,7 @@ def generate_urls():
     # 검색어 입력
     elem.send_keys("촬영지")
     elem.send_keys(Keys.ENTER)
+    f = open("상호명전국1686.txt", 'w', encoding='utf-8')
 
     # class:yuRUbf->a태그->href에 구하려는 url존재
     for page in range(2, 5):
