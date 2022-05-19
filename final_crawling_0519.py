@@ -25,7 +25,7 @@ def get_driver():
 
 def not_crawl_link(link):
     not_crawl = ['youtube', 'twitter', 'pdf', 'pinter']
-    return "youtube" in link or "twitter" in link or "pdf" in link or "pinter" in link or "pixta" in link
+    return "youtube" in link or "twitter" in link or "pdf" in link or "pinter" in link or "pixta" in link or "facebook" in link
 
 def generate_urls():
     driver = get_driver()
@@ -46,7 +46,7 @@ def generate_urls():
 
     # 이미지 업로드 & 파일 선택 버튼 클릭
     driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
-        "C://Users//정보통신공학과//Desktop//미스터션샤인.jpeg")
+        "C://Users//정보통신공학과//Desktop//호텔.jpeg")
     driver.implicitly_wait(5)
 
     # 이미지+촬영지 검색
@@ -65,7 +65,7 @@ def generate_urls():
         if (page == 2):
             # class:yuRUbf->a태그->href에 구하려는 url존재
             find_url1 = driver.find_elements(By.CLASS_NAME, 'ULSxyf')
-            find_url2 = find_url1[1].find_elements(By.CLASS_NAME, 'yuRUbf')
+            find_url2 = find_url1[2].find_elements(By.CLASS_NAME, 'yuRUbf')
             for i in range(len(find_url2)):
                 url = find_url2[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
                 if not (not_crawl_link(url)):
@@ -90,39 +90,40 @@ def generate_urls():
     return url_list
 
 def get_content(url):
-    data_list = []
-    map_address = []
-    res = requests.get(url)
-    time.sleep(0.5)
-    #
-    #
-    # if (len(driver.window_handles) != 1):
-    #     driver.switch_to.window(driver.window_handles[1])
-    #     driver.close()
-    #     driver.switch_to.window(driver.window_handles[0])
-    try:
-        # print("본문 %d 수집 시작" % idx)
-        html = res.text
-        bsoup = BeautifulSoup(html, 'lxml')
-        tag = bsoup.find_all(['p', 'span', 'br', 'figcaption'])
-        address = bsoup.select('.se_address')
-    except HTTPError as e:
-        print("httperror")
-    except:
-        print("error")
+    with open('myfile.txt', 'a', encoding="utf-8") as f:
 
-    for content in tag:
-        data_list.append(content.text+" ")
+        data_list = []
+        map_address = []
+        res = requests.get(url)
+        time.sleep(0.5)
 
-        # file.write(content.text + " ")
-    for add in address:
-        map_address.append(add.text + "\n")
-    print("본문 수집 끝")
+        try:
+            # print("본문 %d 수집 시작" % idx)
+            html = res.text
+            bsoup = BeautifulSoup(html, 'lxml')
+            tag = bsoup.find_all(['p', 'span', 'br', 'figcaption'])
+            address = bsoup.select('.se_address')
+        except HTTPError as e:
+            print("httperror")
+        except:
+            print("error")
+
+        for content in tag:
+            data_list.append(content.text+" ")
+
+            f.write(content.text + " ")
+        for add in address:
+            map_address.append(add.text + "\n")
+            f.write(add.text + " ")
+        print("본문 수집 끝")
 
 if __name__ == '__main__':
     start_time = time.time()
+
     pool = Pool(processes=4)  # 4개의 프로세스를 사용합니다.
     pool.map(get_content, generate_urls())  # get_contetn 함수를 넣어줍시다.
+    pool.close()
+    pool.join()
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
