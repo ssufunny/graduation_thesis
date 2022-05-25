@@ -18,47 +18,4 @@ m = MeCab.Tagger()
 print("MeCab 이용")
 # parse 함수 사용(형태소 분석 & 품사 매칭)
 texts = m.parse(text_file)
-# 띄어쓰기, 줄바꿈마다 split
-words = re.split('[\t\n]', texts)
-
-tagging = []
-word = []
-plz = []
-result = []
-
-# 단어와 품사 태깅 부분으로 배열 따로 지정
-for i in range(0, len(words) - 1):   # 배열 길이만큼 반복
-    if i % 2 == 1:  # 품사 태깅
-        tagging.append(words[i])
-    else:   # 단어
-        if words[i] != "EOS":   # "EOS" 제외한 단어만
-            word.append(words[i])
-
-# 생성된 배열 문자열로 합치기
-tagging_join = ",".join(tagging)
-# , 마다 split
-tagging_split = re.split('[,]', tagging_join)
-
-# 지명 정보 부분만 추출
-for number in range(0, len(tagging_split) - 1):
-    if number % 8 == 1:
-        plz.append(tagging_split[number])
-# 결과 배열
-result = [[str(1000)]*2 for i in range(len(tagging))]
-result_all = [[str(1000)]*2 for i in range(len(tagging))]
-num = 0
-# 결과 배열에 값 넣어주기
-for n in range(0, len(word) - 1):
-    result_all[n][0] = word[n]
-    result_all[n][1] = plz[n]
-    if plz[n] == "지명" or plz[n] == "장소":    # 지명, 장소 태깅만 결과 배열에 넣기
-        result[num][0] = word[n]
-        result[num][1] = plz[n]
-        num+=1
-    # result[n][0] = word[n]
-    # result[n][1] = plz[n]
-# 단어별 출력
-for m in range(0, len(result) - 1):
-    print(m + 1, result_all[m])
-    if (result[m][0] != "1000" and result[m][1] != "1000"):
-        print(result[m])
+print(texts)
