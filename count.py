@@ -1,18 +1,18 @@
 import copyreg
 import re
 import numpy as np
-from konlpy.tag import Mecab
 import MeCab
 from collections import Counter
+import pandas as pd
+import os
 
-# mecab 위치 불러오기
-mecab = Mecab(dicpath="C://mecab//mecab-ko-dic")
 # text 파일 불러오기
 # text 파일 위치(노트북)
 # f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
 # text 파일 위치(컴퓨터)
-f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
+f = open("C://graduation_thesis//graduation_thesis//myfile.txt", 'r', encoding='utf-8')
 text_file = f.read()
+# Mecab 이용
 m = MeCab.Tagger()
 # parse 함수 사용(형태소 분석 & 품사 매칭)
 texts = m.parse(text_file)
@@ -31,22 +31,59 @@ for i in range(0, len(words) - 1):  # 배열 길이만큼 반복
             word.append(words[i])
 
 num = -1
-w = []
+place = []
+tags = []
+
+# 저장 하지 않을 장소
+not_save = ['지역', '국내', '대한민국', '한국', '중심', '장소', '도시', '현장', '해외', '내륙', '외국', '명소', '관광지', '아시아', '우주', '호텔']
+
 for i in tagging:
     tag, category, TF, read, word_type, first_tag, last_tag, exp = i.split(',')
     num += 1
-    if (category == '지명') or (category == '장소'):
-        w.append(word[num])
-        count = Counter(w)
-tag_count = []
-tags = []
+    name = re.search("[가-힣]+", word[num])   # 한글
+    if name:
+        if (category == '지명') or (category == '장소'):
+            if (word[num] not in not_save):
+                place.append(word[num])
+                tags.append(tag)
+                count = Counter(place)
+place_count = []
+places = []
 
-for n, c in count.most_common(100):
-    dics = {'tag': n, 'count': c}
-    if len(dics['tag']) >= 2 and len(tags) <= 49:
-        tag_count.append(dics)
-        tags.append(dics['tag'])
-for tag in tag_count:
-    print(" {:<14}".format(tag['tag']), end='\t')
-    print("{}".format(tag['count']))
+for i, j in count.most_common(100):
+    if len(i) >= 2:
+        places.append(i)
+        place_count.append(j)
 
+# 빈도수가 가장 많은 단어
+most_place = places[0]
+most_place_index = place.index(most_place)
+most_place_tag = tags[most_place_index]
+
+# 태그 넣기
+place_tags = []
+for i in range(len(places)):
+    place_tag = tags[place.index(places[i])]
+    place_tags.append(place_tag)
+
+# 상호명 엑셀 파일 열기
+filename = 'C://graduation_thesis//build_list.xlsx'
+build_list = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
+
+# 빈도표로 장소 정보 알아내기
+# 빈도표에서 품사가 NNG인 단어를 포함하는 장소 찾기
+NNG_place = places[place_tags.index('NNG')]
+df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+print(df_NNG_place)
+# NNG인 단어를 포함하는 장소의 목록이 1개가 될 때까지 NNP인 단어 함께 검색
+index = 0
+while (len(df_NNG_place) != 1):
+    NNP_place = places[place_tags.index('NNP', index)]
+    if index > -1:
+        df_NNG_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
+        index += 1
+print(df_NNG_place)
+
+# test용 print
+for i in range(len(places)):
+    print(places[i], place_tags[i], place_count[i])

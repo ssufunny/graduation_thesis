@@ -64,16 +64,23 @@ def Build():
     category = '장소'
     df_place = build_list.drop_duplicates(['Column2'], keep="first")
     for i in range(len(df_place)):
-        build_name = str(df_place.iloc[i, 1]).replace(" ", "")  # 공백 제거
-        append(file, build_name, tag, category, TF(build_name))
-
+        build_name = str(df_place.iloc[i, 1])
+        if ' ' in build_name:
+            first, *middle, last = build_name.split()
+            if last[-1] == "점":
+                noLastName = build_name.replace(last, "") # ~점 제거
+            result = noLastName.replace(" ", "")    # 공백 제거
+            append(file, result, tag, category, TF(build_name))
+        else:
+            result = build_name
+            append(file, result, tag, category, TF(build_name))
 def main():
     # 미디어 부분 넣을지 말지 애매쓰
     # Media('movie_list')
     # Media('drama_list')
     # Media('variety_list')
     Build()
-    for i in range(2, 6):
-        Place(i)
+    # for i in range(2, 6):
+    #     Place(i)
 
 main()
