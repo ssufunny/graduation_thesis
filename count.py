@@ -83,6 +83,8 @@ while (len(df_NNG_place) != 1):
         df_NNG_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
         index += 1
 print(df_NNG_place)
+result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
+print(result)
 
 # test용 print
 for i in range(len(places)):
