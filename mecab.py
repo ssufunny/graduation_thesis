@@ -10,7 +10,7 @@ mecab = Mecab(dicpath="C://mecab//mecab-ko-dic")
 # text 파일 위치(노트북)
 # f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
 # text 파일 위치(컴퓨터)
-f = open("C://graduation_thesis//graduation_thesis//test.txt", 'r', encoding='utf-8')
+f = open("C://graduation_thesis//graduation_thesis//myfile.txt", 'r', encoding='utf-8')
 text_file = f.read()
 
 # MeCab 이용
