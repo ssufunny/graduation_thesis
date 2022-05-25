@@ -35,7 +35,7 @@ place = []
 tags = []
 
 # 저장 하지 않을 장소
-not_save = ['지역', '국내', '대한민국', '한국', '중심', '장소', '도시', '현장', '해외', '내륙', '외국', '명소', '관광지', '아시아', '우주', '호텔']
+not_save = ['지역', '국내', '대한민국', '한국', '중심', '장소', '도시', '현장', '해외', '내륙', '외국', '명소', '관광지', '아시아', '우주', '호텔', '마을']
 
 for i in tagging:
     tag, category, TF, read, word_type, first_tag, last_tag, exp = i.split(',')
@@ -65,6 +65,13 @@ place_tags = []
 for i in range(len(places)):
     place_tag = tags[place.index(places[i])]
     place_tags.append(place_tag)
+count_NNG = place_tags.count('NNG')
+count_NNP = place_tags.count('NNP')
+
+# test용 print
+for i in range(len(places)):
+    print(places[i], place_tags[i], place_count[i])
+print(count_NNG, count_NNP)
 
 # 상호명 엑셀 파일 열기
 filename = 'C://graduation_thesis//build_list.xlsx'
@@ -73,19 +80,29 @@ build_list = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
 # 빈도표로 장소 정보 알아내기
 # 빈도표에서 품사가 NNG인 단어를 포함하는 장소 찾기
 NNG_place = places[place_tags.index('NNG')]
-df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+print(NNG_place)
+if NNG_place == '해변' or NNG_place == '해수욕장':
+    df_NNG_place = build_list.loc[build_list['Column2'].str.contains('해변|해수욕장')]
+elif NNG_place == '터널':
+    df_NNG_place = build_list.loc[build_list['Column2'].str.contains('터널|굴')]
+else:
+    df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
 print(df_NNG_place)
 # NNG인 단어를 포함하는 장소의 목록이 1개가 될 때까지 NNP인 단어 함께 검색
 index = 0
 while (len(df_NNG_place) != 1):
-    NNP_place = places[place_tags.index('NNP', index)]
-    if index > -1:
-        df_NNG_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
+    if -1 < index < count_NNP:
+        NNP_place = places[place_tags.index('NNP', index)]
+        print(NNP_place)
+        df_NNP_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
+        print(df_NNP_place)
+        if df_NNP_place.empty:
+            df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
+            if df_NNP_place.empty:
+                df_NNP_place = df_NNG_place
+        df_NNG_place = df_NNP_place
         index += 1
 print(df_NNG_place)
 result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
 print(result)
 
-# test용 print
-for i in range(len(places)):
-    print(places[i], place_tags[i], place_count[i])
