@@ -26,9 +26,10 @@ def TF(result):
 
 # 엑셀 파일에서 미디어 이름 불러오기
 def Media(media_list):
-    file = 'nnp'
+    file = 'media'
     tag = 'NNP'
-    category = '제목' # 이렇게 쓰는 거 안됨
+    # category = '제목' # 이렇게 쓰는 거 안됨
+    category = '*'
     filename = 'C://graduation_thesis//' + media_list + '.xlsx'
     media_data = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
     for i in range(len(media_data)):
@@ -77,9 +78,9 @@ def Build():
 def main():
     # 미디어 부분 넣을지 말지 애매쓰
     # Media('movie_list')
-    # Media('drama_list')
+    Media('drama_list')
     # Media('variety_list')
-    Build()
+    # Build()
     # for i in range(2, 6):
     #     Place(i)
 
