@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import './App.css';
 import baseimg from './upload.png';
 export class App extends Component {
+
   state={
     profileImg: null
   }
@@ -23,6 +24,7 @@ export class App extends Component {
 					<div className="img-holder">
 						<img src={profileImg} alt="" id="img" className="img" />
 					</div>
+//			<form action="http://localhost:5000/fileUpload" method="POST" enctype = "multipart/form-data">
             <input type="file" accept="image/*" name="image-upload" id="input" onChange={this.imageHandler}/>
 					<div className="label">
           <label className="image-upload" htmlFor="input">
@@ -31,6 +33,7 @@ export class App extends Component {
           <label className="image-upload" htmlFor="input">
 						위치 찾기
 					</label>
+		  //<label>{currentTime}</label>
           </div>
 				</div>
 			</div>
