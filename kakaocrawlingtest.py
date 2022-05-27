@@ -12,7 +12,7 @@ all_values = []
 load_wb = load_workbook(filename="C://Users//정보통신공학과//Downloads//all_place.xlsx", data_only=True)
 load_ws = load_wb['Sheet1']
 
-for r in range(2083,18570):
+for r in range(3977,18570):
     row_value = ""
     for c in range(2,6):
         if load_ws.cell(row=r, column=c).value == None:
@@ -26,7 +26,7 @@ driver.maximize_window()
 driver.get("https://map.kakao.com/")
 # 주소창 찾기
 elem = driver.find_element(By.NAME, value="q")
-f = open("상호명전국2083.txt", 'w', encoding='utf-8')
+f = open("상호명전국2083.txt", 'a', encoding='utf-8')
 #12개, 0개, 4페이지까지, '끝까지'
 
 #all_values = ['충북 청주시 청원구 내수읍 덕암 2길','충북 청주시 청원구 내수읍 덕암 2길', '충북 청주시 청원구 내수읍 덕암 24길','충북 청주시 청원구 내수읍 초정약수로','충북 청주시 청원구 내수읍']

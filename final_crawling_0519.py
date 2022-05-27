@@ -20,7 +20,6 @@ def get_driver():
     webdriver_options = webdriver.ChromeOptions()
     webdriver_options.add_argument('headless')
     driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
-    # driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
     return driver
 
 def not_crawl_link(link):
