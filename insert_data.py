@@ -3,14 +3,17 @@ import re
 
 # mecab 사전에 추가
 def append(file, result, tag, category, TF):
+    sibal = result + ',,,,' + tag + ',' + category + ',' + TF + ',' + result + ',*,*,*,*\n'
     with open("C:/mecab/user-dic/" + file + ".csv", 'r', encoding='utf-8') as f:
         file_data = f.readlines()
-    file_data.append(result + ',,,,' + tag + ',' + category + ',' + TF + ',' + result + ',*,*,*,*\n')
-    with open("C:/mecab/user-dic/" + file + ".csv", 'w', encoding='utf-8') as f:
-        for line in file_data:
-            f.write(line)
-    # test용 print
-    print(result + ',,,,NNP,' + category + ',' + TF + ',' + result + ',*,*,*,*\n')
+        # print(file_data)
+    if sibal not in file_data:
+        file_data.append(result + ',,,,' + tag + ',' + category + ',' + TF + ',' + result + ',*,*,*,*\n')
+        with open("C:/mecab/user-dic/" + file + ".csv", 'w', encoding='utf-8') as f:
+            for line in file_data:
+                f.write(line)
+        # test용 print
+        print(file  + ':' + result + ',' + tag + ',' + category + ',' + TF + ',' + result + ',*,*,*,*\n')
 
 # 받침 유무 확인
 def TF(result):
@@ -34,7 +37,15 @@ def Media(media_list):
     media_data = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
     for i in range(len(media_data)):
         media_name = str(media_data.iloc[i, 0]).replace(" ", "")  # 공백 제거
-        append(file, media_name, tag, category, TF(media_name))
+        name = re.search("[가-힣]+", media_name)
+        if name:
+            if ',' in media_name:
+                result = media_name.replace(",", "")
+            else:
+                result = media_name
+            append(file, result, tag, category, TF(result))
+        else:
+            continue
 
 # 엑셀 파일에서 지명 불러오기
 def Place(i):
@@ -58,7 +69,7 @@ def Place(i):
 
 # 엑셀 파일에서 상호명 불러오기
 def Build():
-    filename = 'C://graduation_thesis//build_list.xlsx'
+    filename = 'C://graduation_thesis//building_list_3_1.xlsx'
     build_list = pd.read_excel(filename, engine="openpyxl", keep_default_na=False)
     file = 'build'
     tag = 'NNG'
@@ -70,17 +81,37 @@ def Build():
             first, *middle, last = build_name.split()
             if last[-1] == "점":
                 noLastName = build_name.replace(last, "") # ~점 제거
-            result = noLastName.replace(" ", "")    # 공백 제거
-            append(file, result, tag, category, TF(build_name))
+                resultBf = noLastName.replace(" ", "")    # 공백 제거
+                name = re.search("[가-힣]+", resultBf)
+                if name:
+                    result = resultBf
+                else:
+                    continue
+            else:
+                resultBf = build_name.replace(" ", "")
+                name = re.search("[가-힣]+", resultBf)
+                if name:
+                    result = resultBf
+                else:
+                    continue
         else:
-            result = build_name
-            append(file, result, tag, category, TF(build_name))
+            resultBf = build_name
+            name = re.search("[가-힣]+", resultBf)
+            if name:
+                result = resultBf
+            else:
+                continue
+            # data = {'Column2': [resultBf]}
+            # new_df_place = pd.DataFrame(data)
+            # df_place_drop = new_df_place.drop_duplicates(['Column2'], keep="first")
+            # result = str(df_place_drop.iloc[i, 0])
+        append(file, result, tag, category, TF(result))
 def main():
     # 미디어 부분 넣을지 말지 애매쓰
     # Media('movie_list')
-    Media('drama_list')
+    # Media('drama_list')
     # Media('variety_list')
-    # Build()
+    Build()
     # for i in range(2, 6):
     #     Place(i)
 
