@@ -130,7 +130,7 @@ while (len(df_NNG_place) != 1):
             else:
                 df_NNG_place = df_NNP_place
         index2 += 1
-print(df_NNG_place)
-# result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
-# print(result)
+# print(df_NNG_place)
+result = df_NNG_place['Column1'].values[0] + " " + df_NNG_place['Column2'].values[0]
+print(result)
 
