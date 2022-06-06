@@ -1,15 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for
-from werkzeug.utils import secure_filename
-import final_crawling
 import os
 # Selenium 웹드라이버 사용으로 동적페이지 크롤링
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
 from urllib.request import HTTPError
 from urllib.request import URLError
 from selenium import webdriver
 from multiprocessing import Pool, Manager, freeze_support
-from selenium.webdriver.chrome.service import Service
 #from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -18,12 +14,21 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 import requests
 import time
+import copyreg
+import re
+import numpy as np
+import MeCab
+from collections import Counter
+import pandas as pd
+import os
+
+
 def get_driver():
     # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
     webdriver_options = webdriver.ChromeOptions()
     webdriver_options.add_argument('headless')
-    #driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
-    driver = webdriver.Chrome("C://Users//ryuhyisu//Downloads//chromedriver_win32 (2)//chromedriver.exe")
+    driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+    #driver = webdriver.Chrome("C://Users//ryuhyisu//Downloads//chromedriver_win32 (2)//chromedriver.exe")
     return driver
 
 def not_crawl_link(link):
@@ -40,6 +45,9 @@ def generate_urls(filename):
     google = "https://www.google.co.kr/imghp?hl=ko"
     driver.get(google)
 
+    #driver.find_element(By.XPATH, value="//*[@id='yDmH0d']/c-wiz/div/div/c-wiz/div/div/div/div[2]/div[2]/button").click()
+
+
     # 구글이미지 검색창
     driver.find_element(By.XPATH, value="//*[@id='sbtc']/div/div[3]/div[2]").click()
 
@@ -51,7 +59,7 @@ def generate_urls(filename):
     # driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
     #     "C://Users//정보통신공학과//Desktop//호텔.jpeg")
     driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
-        "C:/Users/ryuhyisu/PycharmProjects/graduation_thesis/webfe/flaskserver/"+filename)
+       "C:/graduation_thesis/graduation_thesis/webfe/flaskserver/"+filename)
     driver.implicitly_wait(5)
 
     # 이미지+촬영지 검색
@@ -93,22 +101,25 @@ def generate_urls(filename):
             driver.implicitly_wait(5)
         except:
             break
+    driver.implicitly_wait(5)
+    driver.quit()
 
     return url_list
 
 def get_content(url):
-    with open('myfile.txt', 'a', encoding="utf-8") as f, open('address.txt','a',encoding="utf-8") as f1:
+    with open('myfile.txt', 'a', encoding="utf-8") as bigtextdata, open('address.txt','a',encoding="utf-8") as detaildata:
 
         data_list = []
         map_address = []
-        res = requests.get(url)
-        time.sleep(0.5)
+        time.sleep(1)
+        res = requests.get(url, verify=False)
+        time.sleep(0.3)
 
         try:
             # print("본문 %d 수집 시작" % idx)
             html = res.text
             bsoup = BeautifulSoup(html, 'lxml')
-            tag = bsoup.find_all(['p', 'b','span', 'br', 'figcaption', 'blockquote', 'strong'])
+            tag = bsoup.find_all(['div', 'p', 'b','span', 'br', 'figcaption', 'blockquote', 'strong'])
 
             map_title1 = bsoup.find_all("strong", "se-map-title")
             map_address1 = bsoup.find_all("p", "se-map-address")
@@ -122,26 +133,29 @@ def get_content(url):
 
         for content in tag:
             data_list.append(content.text+" ")
-            f.write(content.text + " ")
+            bigtextdata.write(content.text + " ")
         for title, address in zip(map_title1, map_address1):
             #map_address.append(title.text + "," + address.text + "\n")
-            f1.write(address.text + "," + title.text + "\n")
+            detaildata.write(address.text + "," + title.text + "\n")
 
         for title, address in zip(map_title2, map_address2):
             #map_address.append(title.text + "," + address.text + "\n")
-            f1.write(address.text + "," + title.text + "\n")
+            detaildata.write(address.text + "," + title.text + "\n")
         print("본문 수집 끝")
 
 app = Flask(__name__)
-
-@app.route('/form', methods=['GET', 'POST'])
+@app.route('/')
+def index():
+    return render_template("upload.html")
+@app.route('/form_result', methods=['GET', 'POST'])
 def form():
-    flag = 0
+    result = ""
     if  request.method == 'POST':
+        # 업로드된 파일 저장
         image = request.files['file']
         image.save(image.filename)
-
-        with open("myfile.txt", "w", encoding="utf-8") as f:
+        # 웹크롤링 실행
+        with open("myfile.txt", "w", encoding="utf-8") as f, open("address.txt", "w", encoding='utf-8') as ff:
             pass
         start_time = time.time()
 
@@ -154,10 +168,160 @@ def form():
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
+        time.sleep(1)
 
-    return render_template("test.html", a=str(flag))
+        # 자연어처리
+        #f = open("C://graduation_thesis//graduation_thesis//myfile.txt", 'r', encoding='utf-8')
+        f = open("C://graduation_thesis//graduation_thesis//webfe//flaskserver//myfile.txt", 'r', encoding='UTF8')
+        text_file = f.read()
+        # Mecab 이용
+        m = MeCab.Tagger()
+        # parse 함수 사용(형태소 분석 & 품사 매칭)
+        texts = m.parse(text_file)
+        # 띄어쓰기, 줄바꿈마다 split
+        words = re.split('[\t\n]', texts)
+
+        tagging = []
+        word = []
+
+        # 단어와 품사 태깅 부분으로 배열 따로 지정
+        for i in range(0, len(words) - 1):  # 배열 길이만큼 반복
+            if i % 2 == 1:  # 품사 태깅
+                tagging.append(words[i])
+            else:  # 단어
+                if words[i] != "EOS":  # "EOS" 제외한 단어만
+                    word.append(words[i])
+
+        num = -1
+        place = []
+        tags = []
+
+        # 저장 하지 않을 장소
+        not_save = ['지역', '국내', '대한민국', '한국', '중심', '장소', '도시', '현장', '해외', '내륙', '외국', '명소', '관광지', '아시아', '우주', '호텔',
+                    '마을', '이곳', '예술', '델루나', '호실']
+
+        for i in tagging:
+            tag, category, TF, read, word_type, first_tag, last_tag, exp = i.split(',')
+            num += 1
+            name = re.search("[가-힣]+", word[num])  # 한글
+            if name:
+                if (category == '지명') or (category == '장소'):
+                    if (word[num] not in not_save):
+                        place.append(word[num])
+                        tags.append(tag)
+                        count = Counter(place)
+        place_count = []
+        places = []
+
+        for i, j in count.most_common(20):
+            if len(i) >= 2:
+                places.append(i)
+                place_count.append(j)
+
+        # 태그 넣기
+        place_tags = []
+        for i in range(len(places)):
+            place_tag = tags[place.index(places[i])]
+            place_tags.append(place_tag)
+        count_NNG = place_tags.count('NNG')
+        count_NNP = place_tags.count('NNP')
+        # print(place_tags)
+        # test용 print
+        for i in range(len(places)):
+            print(places[i], place_tags[i], place_count[i])
+        #print(count_NNG, count_NNP)
+
+        # 빈도수가 가장 많은 단어
+        most_place = places[0]
+        most_place_index = place.index(most_place)
+        most_place_tag = tags[most_place_index]
+
+        # 상호명 엑셀 파일 열기
+        filenamenlp = 'C://graduation_thesis//build_list.xlsx'
+        #filenamenlp = "C://Users//ryuhyisu//Downloads//build_list.xlsx"
+        build_list = pd.read_excel(filenamenlp, engine="openpyxl", keep_default_na=False)
+
+        addresses = []
+        with open('address.txt', 'r', encoding='utf-8') as f:
+            file_data = f.readlines()
+            # print(file_data)
+            for i in file_data:
+                # address, build = i.split(',')
+                addresses.append(i)
+
+        # 빈도표로 장소 정보 알아내기
+        # 빈도표에서 품사가 NNG인 단어를 포함하는 장소 찾기
+
+        if place_count[place_tags.index('NNP')] < 1500:
+            NNG_place = places[place_tags.index('NNG')]
+            print(NNG_place)
+            if NNG_place == '해변' or NNG_place == '해수욕장' or NNG_place =='바다':
+                df_NNG_place = build_list.loc[build_list['Column2'].str.contains('해변|해수욕장|바다')]
+            elif NNG_place == '터널':
+                df_NNG_place = build_list.loc[build_list['Column2'].str.contains('터널|굴')]
+            else:
+                one = build_list['Column2'] == NNG_place
+                if one is None:
+                    df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+                else:
+                    df_NNG_place = build_list[one]
+        else:
+            NNP_place = places[place_tags.index('NNP')]
+            one = build_list['Column2'] == NNP_place
+            if one is None:
+                df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNP_place)]
+            else:
+                df_NNG_place = build_list[one]
+        # print(df_NNG_place)
+        # NNG인 단어를 포함하는 장소의 목록이 1개가 될 때까지 NNP인 단어 함께 검색
+
+        index1 = 0
+        index2 = 0
+
+        while (len(df_NNG_place) != 1):
+            if -1 < index1 < 10:
+                NNP_place = places[place_tags.index('NNP', index1)]
+                #print(index1, NNP_place)
+                df_NNP_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
+                # for i in df_NNP_place:
+                #     if i == NNP_place:
+                #         df_NNG_place = data = {'Column1': [address], 'Column2': [build[:-1]]}
+                print(df_NNP_place)
+                if df_NNP_place.empty:
+                    df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
+                    if df_NNP_place.empty:
+                        df_NNP_place = df_NNG_place
+                elif len(df_NNP_place) < 10:
+                    df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
+                df_NNG_place = df_NNP_place
+                result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
+                index1 += 1
+            # else:
+            #     break
+
+            # while (len(df_NNG_place) != 1):
+            elif index1 == 10 and -1 < index2 < 10:
+                NNP_place = places[place_tags.index('NNP', index2)]
+                #print(index2, NNP_place)
+                for j in addresses:
+                    # print(j)
+                    if NNP_place in j:
+                        address, build = j.split(',')
+                        data = {'Column1': [address[0]], 'Column2': [build[0][:-1]]}
+                        df_NNG_place = pd.DataFrame(data)
+                    else:
+                        df_NNG_place = df_NNP_place
+                index2 += 1
+        print(df_NNG_place)
+        flag = 2
+        result = df_NNG_place['Column1'].values[0] + " " + df_NNG_place['Column2'].values[0]
+        print(result)
+
+
+
+    return render_template("map.html",a=result)
+    #return render_template("map.html", a=str(flag))
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run('0.0.0.0', port=5000)
