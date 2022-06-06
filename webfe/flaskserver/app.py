@@ -111,8 +111,8 @@ def get_content(url):
 
         data_list = []
         map_address = []
-        time.sleep(1)
-        res = requests.get(url, verify=False)
+        time.sleep(0.3)
+        res = requests.get(url)
         time.sleep(0.3)
 
         try:
@@ -147,7 +147,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template("upload.html")
-@app.route('/form_result', methods=['GET', 'POST'])
+@app.route('/result', methods=['GET', 'POST'])
 def form():
     result = ""
     if  request.method == 'POST':
@@ -198,7 +198,7 @@ def form():
 
         # 저장 하지 않을 장소
         not_save = ['지역', '국내', '대한민국', '한국', '중심', '장소', '도시', '현장', '해외', '내륙', '외국', '명소', '관광지', '아시아', '우주', '호텔',
-                    '마을', '이곳', '예술', '델루나', '호실']
+                    '마을', '이곳', '예술', '델루나', '호실', '식당', '맛집', '슈퍼', '저승', '도서관', '사이', '해피초원목장']
 
         for i in tagging:
             tag, category, TF, read, word_type, first_tag, last_tag, exp = i.split(',')
@@ -253,6 +253,7 @@ def form():
         # 빈도표에서 품사가 NNG인 단어를 포함하는 장소 찾기
 
         if place_count[place_tags.index('NNP')] < 1500:
+            print(place_count[place_tags.index('NNP')])
             NNG_place = places[place_tags.index('NNG')]
             print(NNG_place)
             if NNG_place == '해변' or NNG_place == '해수욕장' or NNG_place =='바다':
@@ -261,45 +262,48 @@ def form():
                 df_NNG_place = build_list.loc[build_list['Column2'].str.contains('터널|굴')]
             else:
                 one = build_list['Column2'] == NNG_place
-                if one is None:
+                print(one)
+                if len(one) != 1:
                     df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+                    # print(df_NNG_place)
                 else:
                     df_NNG_place = build_list[one]
         else:
             NNP_place = places[place_tags.index('NNP')]
             one = build_list['Column2'] == NNP_place
-            if one is None:
+            if len(one) != 1:
                 df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNP_place)]
             else:
                 df_NNG_place = build_list[one]
-        # print(df_NNG_place)
+        print(df_NNG_place)
         # NNG인 단어를 포함하는 장소의 목록이 1개가 될 때까지 NNP인 단어 함께 검색
 
         index1 = 0
         index2 = 0
-
+        index3 = 0
+        flag = 0
         while (len(df_NNG_place) != 1):
             if -1 < index1 < 10:
                 NNP_place = places[place_tags.index('NNP', index1)]
                 #print(index1, NNP_place)
                 df_NNP_place = df_NNG_place.loc[df_NNG_place['Column1'].str.contains(NNP_place)]
-                # for i in df_NNP_place:
-                #     if i == NNP_place:
-                #         df_NNG_place = data = {'Column1': [address], 'Column2': [build[:-1]]}
                 print(df_NNP_place)
                 if df_NNP_place.empty:
                     df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
                     if df_NNP_place.empty:
                         df_NNP_place = df_NNG_place
-                elif len(df_NNP_place) < 10:
+                elif 5 < len(df_NNP_place) <= 10:
+                    # print(10)
                     df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
                 df_NNG_place = df_NNP_place
-                result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
                 index1 += 1
-            # else:
-            #     break
+                # if len(df_NNP_place) <= 5:
+                #     # print(5)
+                #     df_NNP_place_last = df_NNP_place.iloc[0]
+                #     # print(len(df_NNP_place_last))
+                #     break
+                # df_NNP_place_last = df_NNP_place_last
 
-            # while (len(df_NNG_place) != 1):
             elif index1 == 10 and -1 < index2 < 10:
                 NNP_place = places[place_tags.index('NNP', index2)]
                 #print(index2, NNP_place)
@@ -312,6 +316,9 @@ def form():
                     else:
                         df_NNG_place = df_NNP_place
                 index2 += 1
+
+            # elif index2 == 10 and index3 == 0:
+            #     df_NNG_place = df_NNP_place_last
         print(df_NNG_place)
         flag = 2
         result = df_NNG_place['Column1'].values[0] + " " + df_NNG_place['Column2'].values[0]

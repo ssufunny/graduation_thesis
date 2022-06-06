@@ -10,7 +10,7 @@ import os
 # text 파일 위치(노트북)
 # f = open("C://Users//jisu//Desktop//본문수집.txt", 'r', encoding='utf-8')
 # text 파일 위치(컴퓨터)
-f = open("C://graduation_thesis//graduation_thesis//myfile.txt", 'r', encoding='utf-8')
+f = open("C://graduation_thesis//graduation_thesis//webfe//flaskserver//myfile.txt", 'r', encoding='utf-8')
 text_file = f.read()
 # Mecab 이용
 m = MeCab.Tagger()
@@ -89,12 +89,16 @@ with open('address.txt', 'r', encoding='utf-8') as f:
 # 빈도표에서 품사가 NNG인 단어를 포함하는 장소 찾기
 NNG_place = places[place_tags.index('NNG')]
 print(NNG_place)
-if NNG_place == '해변' or NNG_place == '해수욕장':
-    df_NNG_place = build_list.loc[build_list['Column2'].str.contains('해변|해수욕장')]
+if NNG_place == '해변' or NNG_place == '해수욕장' or NNG_place == '바다':
+    df_NNG_place = build_list.loc[build_list['Column2'].str.contains('해변|해수욕장|바다')]
 elif NNG_place == '터널':
     df_NNG_place = build_list.loc[build_list['Column2'].str.contains('터널|굴')]
 else:
-    df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+    one = build_list['Column2'] == NNG_place
+    if one is None:
+        df_NNG_place = build_list.loc[build_list['Column2'].str.contains(NNG_place)]
+    else:
+        df_NNG_place = build_list[one]
 print(df_NNG_place)
 # NNG인 단어를 포함하는 장소의 목록이 1개가 될 때까지 NNP인 단어 함께 검색
 
@@ -111,6 +115,8 @@ while (len(df_NNG_place) != 1):
             df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
             if df_NNP_place.empty:
                 df_NNP_place = df_NNG_place
+        elif len(df_NNP_place) < 10:
+            df_NNP_place = df_NNG_place.loc[df_NNG_place['Column2'].str.contains(NNP_place)]
         df_NNG_place = df_NNP_place
         result = df_NNG_place['Column1'] + " " + df_NNG_place['Column2']
         index1 += 1

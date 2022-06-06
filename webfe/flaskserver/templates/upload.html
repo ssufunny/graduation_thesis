@@ -3,14 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <title>Image Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+
 </head>
 <body>
+<!--<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=42e15b31ccb6df141d61a17582a5ecba&libraries=services"></script>-->
+    <div class="center">
+        <form action="http://localhost:5000/result" method="POST" enctype = "multipart/form-data">
+            <div class="form-input">
+                <div class="preview">
+                    <div id="cancel-btn">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div id="icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <img id="file-preview">
+                    <label for="file-upload">Upload Image</label>
+                    <input type="file" id="file-upload" accept="image/*" name = "file" onchange="showPreview(event);" />
+                </div>
+            </div>
+            <div class="form-submit">
+                <label for="file-submit">Search</label>
+                <input type = "submit" id="file-submit"/>
+            </div>
+            <div id="keyword">{{a}}</div>
+        </form>
+    </div>
+    <script type="text/javascript">
+        const formInput = document.querySelector(".form-input");
+        const cancelBtn = document.querySelector("#cancel-btn i");
+        const uploadBtn = document.querySelector(".form-input label");
+        const iconI = document.querySelector("#icon i");
+        const img = document.querySelector("img");
 
-        <form action="http://localhost:5000/form" method="POST" enctype = "multipart/form-data">
-        <input type = "file" name = "file" />
-        <input type = "submit" />
-            <p></p>
-    </form>
+        let regExp = /[0-9a-zA-Z\^\&\'\@\{\}\[\]\,\$\=\!\-\#\(\)\.\%\+\~\_ ]+$/;
+
+        function showPreview(event){
+        if(event.target.files.length > 0){
+
+          var src = URL.createObjectURL(event.target.files[0]);
+          var preview = document.getElementById("file-preview");
+          preview.src = src;
+          preview.style.display = "block";
+          document.getElementById("icon").style.display ='none';
+          uploadBtn.style.display ='none';
+          cancelBtn.style.display ='block';
+
+          cancelBtn.addEventListener("click", function(){
+            img.src = "";
+            formInput.classList.remove("active");
+            document.getElementById("icon").style.display ='block';
+            cancelBtn.style.display ='none';
+            uploadBtn.style.display ='block';
+
+          })
+        }
+      }
+    </script>
 
 </body>
 </html>

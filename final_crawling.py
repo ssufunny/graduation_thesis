@@ -19,8 +19,8 @@ def get_driver():
     # 창을 키지않고도 백그라운드에서 코드 자동으로 돌린 후 원하는 결과 출력되도록
     webdriver_options = webdriver.ChromeOptions()
     webdriver_options.add_argument('headless')
-    #driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
-    driver = webdriver.Chrome("C://Users//ryuhyisu//Downloads//chromedriver_win32 (2)//chromedriver.exe")
+    driver = webdriver.Chrome("C://graduation_thesis//chromedriver.exe")
+    # driver = webdriver.Chrome("C://Users//ryuhyisu//Downloads//chromedriver_win32 (2)//chromedriver.exe")
     return driver
 
 def not_crawl_link(link):
@@ -45,10 +45,10 @@ def generate_urls():
     driver.execute_script("document.getElementById('FQt3Wc').style.display = 'block';")
 
     # 이미지 업로드 & 파일 선택 버튼 클릭
-    # driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
-    #     "C://Users//정보통신공학과//Desktop//호텔.jpeg")
     driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
-        "C://Users//ryuhyisu//Desktop//도깨비.png")
+        "C://Users//정보통신공학과//Desktop//2521_2.jpg")
+    # driver.find_element(By.CSS_SELECTOR, value="input[type='file']").send_keys(
+        # "C://Users//ryuhyisu//Desktop//도깨비.png")
     driver.implicitly_wait(5)
 
     # 이미지+촬영지 검색
