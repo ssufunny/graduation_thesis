@@ -2,13 +2,13 @@ with open("C:/mecab/mecab-ko-dic/user-place.csv", 'r', encoding='utf-8') as f:
     file_data = f.readlines()
     for i in file_data:
         word, left_ID, right_ID, weight, tag, category, TF, read, word_type, first_tag, last_tag, exp = i.split(',')
-        # 우선순위가 0이 아닌 단어와 우선순위 값 출력
-        if weight != '0':
+        # 우선순위가 50이 아닌 단어와 우선순위 값 출력
+        if weight != '50':
             print(word, weight)
 
-with open("C:/mecab/mecab-ko-dic/user-place.csv", 'r', encoding='utf-8') as f:
-    file_data = f.readlines()
-print(file_data)
+# with open("C:/mecab/mecab-ko-dic/user-place.csv", 'r', encoding='utf-8') as f:
+#     file_data = f.readlines()
+# print(file_data)
 
 # 우선 순위 값을 다 0으로 바꾸고 다시 추가하는 코드
 # 근데 너무 용량이 커서 안되는 듯 ㅜ
